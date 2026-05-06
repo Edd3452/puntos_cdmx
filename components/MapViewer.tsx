@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import shp from "shpjs";
-import { Upload, Layers, Map as MapIcon } from "lucide-react";
+import { Layers, Map as MapIcon } from "lucide-react";
 import L from "leaflet";
 
 const predefinedColors = [
@@ -64,44 +64,7 @@ export default function MapViewer() {
         loadDefaults();
     }, []);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        if (!file.name.toLowerCase().endsWith(".zip")) {
-            alert("Please provide a .zip file containing the Shapefile (.shp, .dbf, .shx)");
-            e.target.value = "";
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const buffer = await file.arrayBuffer();
-            const geojson = await shp(buffer);
-
-            const layersData = Array.isArray(geojson) ? geojson : [geojson];
-            const newLayers = layersData.map((data, i) => {
-                const name = data.fileName || file.name.replace(".zip", "") + (layersData.length > 1 ? ` ${i + 1}` : "");
-                return {
-                    id: `user-${Date.now()}-${i}`,
-                    name: name,
-                    data: data,
-                    color: getNextColor(),
-                    active: true,
-                    isNew: i === 0,
-                    isUserUpload: true
-                };
-            });
-
-            setLayers((prev) => [...newLayers, ...prev]);
-        } catch (err) {
-            console.error("Error processing file:", err);
-            alert("Error loading shapefile. Ensure user is uploading a valid zip.");
-        } finally {
-            setLoading(false);
-            e.target.value = "";
-        }
-    };
 
     const togglePredefinedLayer = async (layerConfig: any) => {
         const isCurrentlyActive = !!activePredefined[layerConfig.id];
@@ -140,9 +103,7 @@ export default function MapViewer() {
         }
     };
 
-    const toggleUserLayer = (id: string) => {
-        setLayers(layers.map(l => l.id === id ? { ...l, active: !l.active, isNew: false } : { ...l, isNew: false }));
-    };
+
 
     return (
         <div className="flex h-screen w-full font-outfit">
@@ -155,11 +116,7 @@ export default function MapViewer() {
                     </div>
                     <p className="text-sm opacity-90 text-gray-200 leading-tight">Capas Geográficas CDMX</p>
 
-                    <label className="mt-6 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors border border-white/30 rounded-lg p-3 cursor-pointer">
-                        <Upload size={18} />
-                        <span className="font-medium text-sm">Cargar .zip Shapefile</span>
-                        <input type="file" className="hidden" accept=".zip" onChange={handleFileUpload} />
-                    </label>
+
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
@@ -187,21 +144,7 @@ export default function MapViewer() {
                             ))}
                         </div>
 
-                        {/* User Uploaded Layers via ZIP */}
-                        {layers.filter(l => l.isUserUpload).map(layer => (
-                            <div key={layer.id} className="flex items-center gap-3 mt-4">
-                                <input
-                                    type="checkbox"
-                                    checked={layer.active}
-                                    onChange={() => toggleUserLayer(layer.id)}
-                                    className="w-5 h-5 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
-                                />
-                                <div className="flex items-center gap-2 flex-1 min-w-0 pointer-events-none">
-                                    <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: layer.color }}></div>
-                                    <span className="text-[15px] text-gray-800 truncate font-medium">{layer.name}</span>
-                                </div>
-                            </div>
-                        ))}
+
                     </div>
                 </div>
 
