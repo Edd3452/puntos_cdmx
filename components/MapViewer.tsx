@@ -13,6 +13,15 @@ const predefinedColors = [
     '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
 ];
 
+const AVAILABLE_LAYERS = [
+    { id: "biciestacionamientos", name: "Shapes/Biciestacionamientos...", path: "/shapefiles/Social/Biciestacionamientos_Final.shp", color: "#99cc00" },
+    { id: "centros_justicia", name: "Shapes/Centros_de_justicia", path: "/shapefiles/Social/Centros_de_justicia.shp", color: "#ff9900" },
+    { id: "motos", name: "Shapes/Estacionamientos_Moto...", path: "/shapefiles/Social/Estacionamientos_Moto.shp", color: "#339866" },
+    { id: "pilares", name: "Shapes/Pilares", path: "/shapefiles/Social/Pilares.shp", color: "#800080" },
+    { id: "ut", name: "Shapes/UT", path: "/shapefiles/Social/UT.shp", color: "#ffcc99" },
+    { id: "utopias", name: "Shapes/utopias", path: "/shapefiles/Social/utopias.shp", color: "#33cccc" }
+];
+
 function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolean }) {
     const map = useMap();
     useEffect(() => {
@@ -34,6 +43,9 @@ export default function MapViewer() {
     const [loading, setLoading] = useState(false);
     const colorIndex = useRef(0);
 
+    // Keep track of which predefined layers are toggled ON
+    const [activePredefined, setActivePredefined] = useState<Record<string, boolean>>({});
+
     const getNextColor = () => {
         const c = predefinedColors[colorIndex.current % predefinedColors.length];
         colorIndex.current += 1;
@@ -41,21 +53,12 @@ export default function MapViewer() {
     };
 
     useEffect(() => {
-        // Load default boundaries and layers here
         const loadDefaults = async () => {
             try {
                 const base = await shp("/shapefiles/09mun.shp");
                 setBaseLayer(base);
-
-                // Preload example layers
-                const marginacion = await shp("/shapefiles/GradoMarginacion.shp");
-                setLayers((prev) => [
-                    ...prev,
-                    { id: "marginacion", name: "Grado Marginación", data: marginacion, color: getNextColor(), active: true }
-                ]);
-
             } catch (e) {
-                console.error("Failed to load initial layers", e);
+                console.error("Failed to load base layer", e);
             }
         };
         loadDefaults();
@@ -85,7 +88,8 @@ export default function MapViewer() {
                     data: data,
                     color: getNextColor(),
                     active: true,
-                    isNew: i === 0
+                    isNew: i === 0,
+                    isUserUpload: true
                 };
             });
 
@@ -99,18 +103,55 @@ export default function MapViewer() {
         }
     };
 
-    const toggleLayer = (id: string) => {
+    const togglePredefinedLayer = async (layerConfig: any) => {
+        const isCurrentlyActive = !!activePredefined[layerConfig.id];
+
+        // Toggle state visually immediately
+        setActivePredefined(prev => ({ ...prev, [layerConfig.id]: !isCurrentlyActive }));
+
+        // If it was already loaded into `layers`, just toggle its `active` status
+        if (layers.some(l => l.id === layerConfig.id)) {
+            setLayers(prev => prev.map(l => l.id === layerConfig.id ? { ...l, active: !isCurrentlyActive, isNew: false } : l));
+            return;
+        }
+
+        // If turning ON for the first time, fetch it natively from /public/shapefiles
+        if (!isCurrentlyActive) {
+            setLoading(true);
+            try {
+                const geojson = await shp(layerConfig.path);
+                const loadedLayer = {
+                    id: layerConfig.id,
+                    name: layerConfig.name,
+                    data: geojson,
+                    color: layerConfig.color,
+                    active: true,
+                    isNew: true,
+                    isUserUpload: false
+                };
+                setLayers(prev => [...prev, loadedLayer]);
+            } catch (err) {
+                console.error(`Error loading predefined layer ${layerConfig.name}:`, err);
+                alert(`Error cargando capa ${layerConfig.name}`);
+                setActivePredefined(prev => ({ ...prev, [layerConfig.id]: false })); // revert
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const toggleUserLayer = (id: string) => {
         setLayers(layers.map(l => l.id === id ? { ...l, active: !l.active, isNew: false } : { ...l, isNew: false }));
     };
 
     return (
         <div className="flex h-screen w-full font-outfit">
             {/* Sidebar */}
-            <aside className="w-80 bg-white shadow-lg z-10 flex flex-col border-r h-full relative">
+            <aside className="w-[340px] bg-white shadow-lg z-10 flex flex-col border-r h-full relative">
                 <div className="p-6 bg-mapPrimary text-white">
                     <div className="flex items-center gap-3 mb-2">
                         <MapIcon size={24} />
-                        <h1 className="text-xl font-bold tracking-wide">Visor CDMX</h1>
+                        <h1 className="text-2xl font-bold tracking-wide">Visor CDMX</h1>
                     </div>
                     <p className="text-sm opacity-90 text-gray-200 leading-tight">Capas Geográficas CDMX</p>
 
@@ -121,30 +162,46 @@ export default function MapViewer() {
                     </label>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     <div className="flex items-center gap-2 mb-4 text-gray-600">
                         <Layers size={18} />
-                        <h2 className="font-semibold uppercase text-xs tracking-wider">Capas Activas</h2>
+                        <h2 className="font-semibold uppercase text-xs tracking-wider">CAPAS ACTIVAS</h2>
                     </div>
 
-                    <div className="space-y-2">
-                        {layers.map(layer => (
-                            <div key={layer.id} className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${layer.active ? 'bg-gray-50 border-gray-200' : 'bg-white border-transparent'}`}>
+                    <div className="space-y-4">
+                        {/* Predefined Layers fetched naturally */}
+                        <div className="space-y-4">
+                            {AVAILABLE_LAYERS.map(layer => (
+                                <div key={layer.id} className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!activePredefined[layer.id]}
+                                        onChange={() => togglePredefinedLayer(layer)}
+                                        className="w-5 h-5 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
+                                    />
+                                    <div className="flex items-center gap-2 flex-1 min-w-0 pointer-events-none">
+                                        <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: layer.color }}></div>
+                                        <span className="text-[15px] text-black truncate font-medium">{layer.name}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* User Uploaded Layers via ZIP */}
+                        {layers.filter(l => l.isUserUpload).map(layer => (
+                            <div key={layer.id} className="flex items-center gap-3 mt-4">
                                 <input
                                     type="checkbox"
                                     checked={layer.active}
-                                    onChange={() => toggleLayer(layer.id)}
-                                    className="w-4 h-4 text-mapPrimary rounded focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
+                                    onChange={() => toggleUserLayer(layer.id)}
+                                    className="w-5 h-5 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
                                 />
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: layer.color }}></div>
-                                    <span className="text-sm text-gray-800 truncate font-medium">{layer.name}</span>
+                                <div className="flex items-center gap-2 flex-1 min-w-0 pointer-events-none">
+                                    <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: layer.color }}></div>
+                                    <span className="text-[15px] text-gray-800 truncate font-medium">{layer.name}</span>
                                 </div>
                             </div>
                         ))}
-                        {layers.length === 0 && !loading && (
-                            <p className="text-center text-sm text-gray-400 py-8">Ninguna capa cargada</p>
-                        )}
                     </div>
                 </div>
 
