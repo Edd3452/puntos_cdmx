@@ -13,6 +13,35 @@ const predefinedColors = [
     '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
 ];
 
+const CHOROPLETH_CONFIG: Record<string, any> = {
+    "ageb": {
+        column: "e_idsm",
+        mapping: {
+            "Muy bajo": "#4b2c7f",
+            "Bajo": "#3b509d",
+            "Medio": "#d15c7a",
+            "Alto": "#e17061",
+            "Muy alto": "#9bb2c0",
+            "Sin información": "#ffffff",
+            "Sin informacin": "#ffffff"
+        },
+        legendTitle: "Estratos IDS",
+        headerTitle: "Índice de Desarrollo Social (IDS) de la Ciudad de México por AGEB, 2020"
+    },
+    "marginacion": {
+        column: "GM_2020",
+        mapping: {
+            "Muy alto": "#4b2c7f",
+            "Alto": "#3b509d",
+            "Medio": "#d15c7a",
+            "Bajo": "#e17061",
+            "Muy bajo": "#9bb2c0",
+        },
+        legendTitle: "Grado de Marginación",
+        headerTitle: "Grado de Marginación por Colonia, 2020"
+    }
+};
+
 const LAYER_CATEGORIES = [
     {
         id: "sociales",
@@ -78,7 +107,6 @@ const LAYER_CATEGORIES = [
         ]
     }
 ];
-
 function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolean }) {
     const map = useMap();
     useEffect(() => {
@@ -92,6 +120,28 @@ function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolea
         }
     }, [geojson, fitBounds, map]);
     return null;
+}
+
+function Legend({ config }: { config: any }) {
+    return (
+        <div className="absolute bottom-10 right-10 z-[1000] bg-white p-5 rounded-xl shadow-2xl border border-gray-100 font-outfit min-w-[200px] animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <h3 className="text-sm font-extrabold text-gray-800 mb-4 border-b pb-2 tracking-tight">{config.legendTitle}</h3>
+            <div className="space-y-3">
+                {Object.entries(config.mapping).map(([label, color]: [string, any]) => {
+                    if (label.includes("informaci")) return null;
+                    return (
+                        <div key={label} className="flex items-center gap-3 group">
+                            <div 
+                                className="w-5 h-5 rounded shadow-sm border border-black/5 group-hover:scale-110 transition-transform" 
+                                style={{ backgroundColor: color }}
+                            ></div>
+                            <span className="text-xs font-semibold text-gray-600 group-hover:text-black transition-colors">{label}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 }
 
 export default function MapViewer() {
@@ -313,17 +363,45 @@ export default function MapViewer() {
                                         fillOpacity: 0.8
                                     });
                                 }}
-                                style={() => ({
-                                    color: layer.color,
-                                    weight: 2,
-                                    opacity: 1,
-                                    fillOpacity: 0.4
-                                })}
+                                style={(feature) => {
+                                    const config = CHOROPLETH_CONFIG[layer.id];
+                                    if (config && feature) {
+                                        const val = feature.properties?.[config.column] || "Sin información";
+                                        const color = config.mapping[val] || "#ffffff";
+                                        return {
+                                            fillColor: color,
+                                            color: '#666666',
+                                            weight: 1,
+                                            fillOpacity: 0.7
+                                        };
+                                    }
+                                    return {
+                                        color: layer.color,
+                                        weight: 2,
+                                        opacity: 1,
+                                        fillOpacity: 0.4
+                                    };
+                                }}
                                 onEachFeature={(feature, featureLayer) => {
                                     if (feature.properties) {
-                                        let html = '<div class="font-outfit text-sm" style="max-height: 200px; overflow: auto; min-width: 200px;">';
-                                        Object.entries(feature.properties).slice(0, 8).forEach(([k, v]) => {
-                                            html += `<div class="border-b last:border-b-0 py-1"><span class="font-semibold text-gray-700">${k}:</span> <span class="text-gray-900">${v}</span></div>`;
+                                        const config = CHOROPLETH_CONFIG[layer.id];
+                                        let html = '<div class="font-outfit text-sm" style="max-height: 250px; overflow: auto; min-width: 220px; padding: 4px;">';
+                                        
+                                        // Highlight the classification if it's a choropleth layer
+                                        if (config && feature.properties[config.column]) {
+                                            const val = feature.properties[config.column];
+                                            const color = config.mapping[val] || "#333";
+                                            html += `
+                                                <div class="mb-4 p-3 rounded-lg border-l-4 shadow-sm" style="border-left-color: ${color}; background-color: ${color}15">
+                                                    <div class="text-[10px] uppercase font-bold text-gray-500 mb-1">${config.legendTitle}</div>
+                                                    <div class="text-base font-extrabold" style="color: ${color}">${val}</div>
+                                                </div>
+                                            `;
+                                        }
+
+                                        Object.entries(feature.properties).slice(0, 10).forEach(([k, v]) => {
+                                            if (config && k === config.column) return; // Skip as it's already shown
+                                            html += `<div class="border-b last:border-b-0 py-1.5 flex justify-between gap-4"><span class="font-bold text-gray-500 text-[10px] uppercase">${k}</span> <span class="text-gray-900 font-semibold text-right">${v}</span></div>`;
                                         });
                                         html += '</div>';
                                         featureLayer.bindPopup(html);
@@ -333,6 +411,22 @@ export default function MapViewer() {
                         </div>
                     ))}
                 </MapContainer>
+
+                {/* Legend for Sociodemographic layers */}
+                {layers.filter(l => l.active && CHOROPLETH_CONFIG[l.id]).map(layer => (
+                    <Legend key={`legend-${layer.id}`} config={CHOROPLETH_CONFIG[layer.id]} />
+                ))}
+
+                {/* Top Banner for Sociodemographic titles */}
+                {layers.some(l => l.active && CHOROPLETH_CONFIG[l.id]) && (
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xl px-4 pointer-events-none">
+                        <div className="bg-white/90 backdrop-blur-md text-mapPrimary px-6 py-4 rounded-2xl shadow-2xl border border-white/20 text-center animate-in fade-in zoom-in duration-500">
+                            <h3 className="text-sm md:text-base font-black tracking-tight leading-tight">
+                                {CHOROPLETH_CONFIG[layers.findLast(l => l.active && CHOROPLETH_CONFIG[l.id])?.id]?.headerTitle}
+                            </h3>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
