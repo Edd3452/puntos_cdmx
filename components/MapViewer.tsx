@@ -35,7 +35,7 @@ const LAYER_CATEGORIES = [
                 name: "Delitos a personas",
                 layers: [
                     { id: "homicidios", name: "Homicidios", path: "/shapefiles/Delitos/Delitos a personas/Homicidios" },
-                    { id: "robo_casa", name: "Robo a casa habitación", path: "/shapefiles/Delitos/Delitos a personas/ROBO A CASA HABITACIÓN " },
+                    { id: "robo_casa", name: "Robo a casa habitación", path: "/shapefiles/Delitos/Delitos a personas/ROBO A CASA HABITACIÓN" },
                     { id: "robo_cuenta", name: "Robo a cuentahabiente", path: "/shapefiles/Delitos/Delitos a personas/ROBO A CUENTAHABIENTE" },
                     { id: "robo_negocio", name: "Robo a negocio con violencia", path: "/shapefiles/Delitos/Delitos a personas/ROBO A NEGOCIO CON VIOLENCIA" },
                     { id: "violaciones", name: "Violaciones", path: "/shapefiles/Delitos/Delitos a personas/VIOLACIONES" }
@@ -65,7 +65,7 @@ const LAYER_CATEGORIES = [
         layers: [
             { id: "acoso", name: "Acoso y agresión", path: "/shapefiles/Ni una menos/Acoso y agresióin" },
             { id: "asaltos", name: "Asaltos", path: "/shapefiles/Ni una menos/Asaltos" },
-            { id: "fraudes", name: "Fraudes", path: "/shapefiles/Ni una menos/Fraudes " },
+            { id: "fraudes", name: "Fraudes", path: "/shapefiles/Ni una menos/Fraudes" },
             { id: "intento_asalto", name: "Intento de asalto", path: "/shapefiles/Ni una menos/Intento de asalto" }
         ]
     },
@@ -122,7 +122,9 @@ export default function MapViewer() {
     useEffect(() => {
         const loadDefaults = async () => {
             try {
-                const base = await shp("/shapefiles/09mun");
+                // Prepend origin to avoid "Invalid URL" error in shpjs
+                const baseUrl = window.location.origin;
+                const base = await shp(baseUrl + "/shapefiles/09mun");
                 setBaseLayer(base);
             } catch (e) {
                 console.error("Failed to load base layer", e);
@@ -149,7 +151,10 @@ export default function MapViewer() {
         if (!isCurrentlyActive) {
             setLoading(true);
             try {
-                const geojson = await shp(encodeURI(layerConfig.path));
+                // Prepend origin and encode to avoid "Invalid URL" error in shpjs
+                const baseUrl = window.location.origin;
+                const fullPath = baseUrl + encodeURI(layerConfig.path);
+                const geojson = await shp(fullPath);
                 const loadedLayer = {
                     id: layerConfig.id,
                     name: layerConfig.name,
