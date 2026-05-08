@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import shp from "shpjs";
-import { Layers, Map as MapIcon } from "lucide-react";
+import { Layers, Map as MapIcon, ChevronDown, ChevronRight, Info } from "lucide-react";
 import L from "leaflet";
 
 const predefinedColors = [
@@ -13,13 +13,70 @@ const predefinedColors = [
     '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231',
 ];
 
-const AVAILABLE_LAYERS = [
-    { id: "biciestacionamientos", name: "Shapes/Biciestacionamientos...", path: "/shapefiles/Social/Biciestacionamientos_Final.shp", color: "#99cc00" },
-    { id: "centros_justicia", name: "Shapes/Centros_de_justicia", path: "/shapefiles/Social/Centros_de_justicia.shp", color: "#ff9900" },
-    { id: "motos", name: "Shapes/Estacionamientos_Moto...", path: "/shapefiles/Social/Estacionamientos_Moto.shp", color: "#339866" },
-    { id: "pilares", name: "Shapes/Pilares", path: "/shapefiles/Social/Pilares.shp", color: "#800080" },
-    { id: "ut", name: "Shapes/UT", path: "/shapefiles/Social/UT.shp", color: "#ffcc99" },
-    { id: "utopias", name: "Shapes/utopias", path: "/shapefiles/Social/utopias.shp", color: "#33cccc" }
+const LAYER_CATEGORIES = [
+    {
+        id: "sociales",
+        name: "Sociales",
+        layers: [
+            { id: "biciestacionamientos", name: "Biciestacionamientos", path: "/shapefiles/Social/Biciestacionamientos_Final" },
+            { id: "centros_justicia", name: "Centros de justicia", path: "/shapefiles/Social/Centros_de_justicia" },
+            { id: "motos", name: "Estacionamientos Moto", path: "/shapefiles/Social/Estacionamientos_Moto" },
+            { id: "pilares", name: "Pilares", path: "/shapefiles/Social/Pilares" },
+            { id: "ut", name: "UT", path: "/shapefiles/Social/UT" },
+            { id: "utopias", name: "Utopias", path: "/shapefiles/Social/utopias" }
+        ]
+    },
+    {
+        id: "delitos",
+        name: "Delitos",
+        subcategories: [
+            {
+                id: "delitos_personas",
+                name: "Delitos a personas",
+                layers: [
+                    { id: "homicidios", name: "Homicidios", path: "/shapefiles/Delitos/Delitos a personas/Homicidios" },
+                    { id: "robo_casa", name: "Robo a casa habitación", path: "/shapefiles/Delitos/Delitos a personas/ROBO A CASA HABITACIÓN " },
+                    { id: "robo_cuenta", name: "Robo a cuentahabiente", path: "/shapefiles/Delitos/Delitos a personas/ROBO A CUENTAHABIENTE" },
+                    { id: "robo_negocio", name: "Robo a negocio con violencia", path: "/shapefiles/Delitos/Delitos a personas/ROBO A NEGOCIO CON VIOLENCIA" },
+                    { id: "violaciones", name: "Violaciones", path: "/shapefiles/Delitos/Delitos a personas/VIOLACIONES" }
+                ]
+            },
+            {
+                id: "delitos_vehiculos",
+                name: "Delitos con vehículos implicados",
+                layers: [
+                    { id: "robo_pasajero_microbus", name: "Robo a pasajero en microbús", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO A PASAJERO A BORDO DE MICROBUS" },
+                    { id: "robo_pasajero_taxi", name: "Robo a pasajero en taxi", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO A PASAJERO A BORDO DE TAXI" },
+                    { id: "robo_pasajero_metro", name: "Robo a pasajero en metro", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO A PASAJERO A BORDO DEL METRO" },
+                    { id: "robo_repartidor", name: "Robo a repartidor", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO A REPARTIDOR" },
+                    { id: "robo_transportista", name: "Robo a transportista", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO A TRASPORTISTA" },
+                    { id: "robo_moto_violencia", name: "Robo de motocicleta con violencia", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO DE MOTOCICLETA CON VIOLENCIA" },
+                    { id: "robo_moto_sin_violencia", name: "Robo de motocicleta sin violencia", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO DE MOTOCICLETA SIN VIOLENCIA" },
+                    { id: "robo_vehiculo_particular_violencia", name: "Robo de vehículo particular con violencia", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO DE VEHICULO DE SERVICIO PARTICULAR CON VIOLENCIA" },
+                    { id: "robo_vehiculo_publico_sin_violencia", name: "Robo de vehículo público sin violencia", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO DE VEHICULO DE SERVICIO PÚBLICO SIN VIOLENCIA" },
+                    { id: "robo_vehiculo", name: "Robo de vehículo", path: "/shapefiles/Delitos/Delitos con vehiculos implicados/ROBO DE VEHICULO" }
+                ]
+            }
+        ]
+    },
+    {
+        id: "ni_una_menos",
+        name: "Registros (Ni una menos)",
+        layers: [
+            { id: "acoso", name: "Acoso y agresión", path: "/shapefiles/Ni una menos/Acoso y agresióin" },
+            { id: "asaltos", name: "Asaltos", path: "/shapefiles/Ni una menos/Asaltos" },
+            { id: "fraudes", name: "Fraudes", path: "/shapefiles/Ni una menos/Fraudes " },
+            { id: "intento_asalto", name: "Intento de asalto", path: "/shapefiles/Ni una menos/Intento de asalto" }
+        ]
+    },
+    {
+        id: "socio_demograficas",
+        name: "Socio Demográficas",
+        layers: [
+            { id: "marginacion", name: "Grado de Marginación", path: "/shapefiles/Socio demografico/GradoMarginación" },
+            { id: "ageb", name: "AGEB CDMX", path: "/shapefiles/Socio demografico/ids_ageb_cdmx" }
+        ]
+    }
 ];
 
 function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolean }) {
@@ -45,6 +102,16 @@ export default function MapViewer() {
 
     // Keep track of which predefined layers are toggled ON
     const [activePredefined, setActivePredefined] = useState<Record<string, boolean>>({});
+    const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
+        sociales: true,
+        delitos: false,
+        ni_una_menos: false,
+        socio_demograficas: false
+    });
+
+    const toggleCategory = (id: string) => {
+        setOpenCategories(prev => ({ ...prev, [id]: !prev[id] }));
+    };
 
     const getNextColor = () => {
         const c = predefinedColors[colorIndex.current % predefinedColors.length];
@@ -55,7 +122,7 @@ export default function MapViewer() {
     useEffect(() => {
         const loadDefaults = async () => {
             try {
-                const base = await shp("/shapefiles/09mun.shp");
+                const base = await shp("/shapefiles/09mun");
                 setBaseLayer(base);
             } catch (e) {
                 console.error("Failed to load base layer", e);
@@ -82,12 +149,12 @@ export default function MapViewer() {
         if (!isCurrentlyActive) {
             setLoading(true);
             try {
-                const geojson = await shp(layerConfig.path);
+                const geojson = await shp(encodeURI(layerConfig.path));
                 const loadedLayer = {
                     id: layerConfig.id,
                     name: layerConfig.name,
                     data: geojson,
-                    color: layerConfig.color,
+                    color: layerConfig.color || getNextColor(),
                     active: true,
                     isNew: true,
                     isUserUpload: false
@@ -120,31 +187,72 @@ export default function MapViewer() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    <div className="flex items-center gap-2 mb-4 text-gray-600">
-                        <Layers size={18} />
-                        <h2 className="font-semibold uppercase text-xs tracking-wider">CAPAS ACTIVAS</h2>
+                    <h2 className="text-xl font-bold text-mapPrimary mb-4">Menús Disponibles</h2>
+
+                    <div className="bg-[#e3f2fd] p-4 rounded-lg flex gap-3 mb-6">
+                        <Info className="text-mapPrimary shrink-0" size={20} />
+                        <p className="text-sm text-mapPrimary font-medium leading-tight">
+                            Seleccione las categorías para visualizar las capas.
+                        </p>
                     </div>
 
-                    <div className="space-y-4">
-                        {/* Predefined Layers fetched naturally */}
-                        <div className="space-y-4">
-                            {AVAILABLE_LAYERS.map(layer => (
-                                <div key={layer.id} className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!activePredefined[layer.id]}
-                                        onChange={() => togglePredefinedLayer(layer)}
-                                        className="w-5 h-5 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
-                                    />
-                                    <div className="flex items-center gap-2 flex-1 min-w-0 pointer-events-none">
-                                        <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: layer.color }}></div>
-                                        <span className="text-[15px] text-black truncate font-medium">{layer.name}</span>
+                    <div className="space-y-2">
+                        {LAYER_CATEGORIES.map(category => (
+                            <div key={category.id} className="border-b border-gray-100 last:border-0 pb-2">
+                                <button
+                                    onClick={() => toggleCategory(category.id)}
+                                    className="w-full flex items-center justify-between py-3 px-1 text-left hover:bg-gray-50 transition-colors group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-mapPrimary">
+                                            {openCategories[category.id] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                        </div>
+                                        <span className={`font-semibold text-lg ${openCategories[category.id] ? 'text-mapPrimary' : 'text-gray-700'} group-hover:text-mapPrimary transition-colors`}>
+                                            {category.name}
+                                        </span>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                </button>
 
+                                {openCategories[category.id] && (
+                                    <div className="pl-8 pr-2 space-y-3 mt-1 pb-2">
+                                        {category.layers?.map(layer => (
+                                            <label key={layer.id} className="flex items-center gap-3 cursor-pointer group/item">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!activePredefined[layer.id]}
+                                                    onChange={() => togglePredefinedLayer(layer)}
+                                                    className="w-4 h-4 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
+                                                />
+                                                <span className="text-sm text-gray-600 group-hover/item:text-black transition-colors">
+                                                    {layer.name}
+                                                </span>
+                                            </label>
+                                        ))}
 
+                                        {category.subcategories?.map(sub => (
+                                            <div key={sub.id} className="space-y-2 pt-2 border-t border-gray-50 mt-4 first:mt-0 first:border-0 first:pt-0">
+                                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">{sub.name}</h3>
+                                                <div className="space-y-3 pl-1">
+                                                    {sub.layers.map(layer => (
+                                                        <label key={layer.id} className="flex items-center gap-3 cursor-pointer group/item">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!activePredefined[layer.id]}
+                                                                onChange={() => togglePredefinedLayer(layer)}
+                                                                className="w-4 h-4 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
+                                                            />
+                                                            <span className="text-sm text-gray-600 group-hover/item:text-black transition-colors">
+                                                                {layer.name}
+                                                            </span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
