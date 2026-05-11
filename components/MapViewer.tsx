@@ -131,8 +131,8 @@ function Legend({ config }: { config: any }) {
                     if (label.includes("informaci")) return null;
                     return (
                         <div key={label} className="flex items-center gap-3 group">
-                            <div 
-                                className="w-5 h-5 rounded shadow-sm border border-black/5 group-hover:scale-110 transition-transform" 
+                            <div
+                                className="w-5 h-5 rounded shadow-sm border border-black/5 group-hover:scale-110 transition-transform"
                                 style={{ backgroundColor: color }}
                             ></div>
                             <span className="text-xs font-semibold text-gray-600 group-hover:text-black transition-colors">{label}</span>
@@ -313,7 +313,7 @@ export default function MapViewer() {
 
                 <div className="p-4 bg-gray-50 border-t mt-auto">
                     <div className="text-xs text-center text-gray-500">
-                        Datos utilizando registros de la Fiscalía General de Justicia CDMX
+                        Datos utilizandos del registro público de la Fiscalía General de Justicia CDMX
                     </div>
                 </div>
             </aside>
@@ -386,7 +386,7 @@ export default function MapViewer() {
                                     if (feature.properties) {
                                         const config = CHOROPLETH_CONFIG[layer.id];
                                         let html = '<div class="font-outfit text-sm" style="max-height: 250px; overflow: auto; min-width: 220px; padding: 4px;">';
-                                        
+
                                         // Highlight the classification if it's a choropleth layer
                                         if (config && feature.properties[config.column]) {
                                             const val = feature.properties[config.column];
