@@ -17,13 +17,153 @@ except Exception as e:
     st.error(f"An unexpected error occurred during imports: {e}")
     st.stop()
 
-# Title and Header
+# --- CUSTOM CSS ---
 st.markdown("""
-    <div style="background-color: #581845; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-        <h1 style="color: white; text-align: center; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: bold;">
-            Visualizador Geoespacial CDMX
-        </h1>
+    <style>
+    /* Main App Background */
+    .stApp {
+        background-color: #f8f9fa;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: white !important;
+        border-right: 1px solid #e9ecef;
+        padding-top: 0rem;
+    }
+    
+    /* Hide Default Header and Footer */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+
+    /* Sidebar Content Colors */
+    [data-testid="stSidebar"] .stMarkdown h2, 
+    [data-testid="stSidebar"] .stMarkdown h1 {
+        color: #581845 !important;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown p {
+        color: #581845 !important;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Info Box */
+    .info-box {
+        background-color: #e3f2fd;
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(187, 222, 251, 0.5);
+        margin-bottom: 2rem;
+    }
+    .info-box p {
+        color: #581845 !important;
+        margin: 0;
+        font-weight: 500;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background-color: transparent !important;
+        border: none !important;
+        color: #581845 !important;
+        font-weight: 700 !important;
+        font-size: 1.05rem !important;
+    }
+    .streamlit-expanderContent {
+        background-color: #f8f9fa !important;
+        border-radius: 0.5rem !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    /* Checkboxes */
+    .stCheckbox label p {
+        color: #581845 !important;
+        font-weight: 500 !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Map Container */
+    .map-container {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Legend */
+    .legend-card {
+        position: fixed;
+        bottom: 2.5rem;
+        right: 2.5rem;
+        z-index: 1000;
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e2e8f0;
+        min-width: 200px;
+    }
+    .legend-title {
+        font-weight: 900;
+        color: #581845;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .legend-color {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .legend-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #581845;
+    }
+    
+    /* Top Bar */
+    .top-bar {
+        background-color: #1a1c1e;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        margin-bottom: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .top-bar-title {
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: -0.02em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Top Bar
+st.markdown("""
+    <div class="top-bar">
+        <div class="top-bar-title">🗺️ Visor CDMX</div>
     </div>
+    <div style="height: 3.5rem;"></div>
 """, unsafe_allow_html=True)
 @st.cache_data
 def load_and_process_shapefile(filepath):
@@ -82,84 +222,13 @@ CHOROPLETH_CONFIG = {
 
 # Sidebar
 with st.sidebar:
+    st.markdown('<div style="height: 1rem;"></div>', unsafe_allow_html=True)
     st.header("Menús Disponibles")
-    st.info("Seleccione las categorías para visualizar las capas.")
-
-# Custom CSS for white background and sidebar
-st.markdown('''
-    <style>
-    .stApp {
-        background-color: white;
-        color: black;
-    }
-    [data-testid="stSidebar"] {
-        background-color: white !important;
-    }
-    [data-testid="stSidebar"] .stMarkdown,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] span,
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3,
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] div {
-        color: rgb(157, 33, 72) !important;
-    }
-    [data-testid="stSidebar"] .stCheckbox p {
-        color: rgb(157, 33, 72) !important;
-    }
-    [data-testid="stExpander"] details > summary {
-        color: rgb(157, 33, 72) !important;
-        font-weight: 600;
-    }
-    [data-testid="stExpander"] details[open] > summary {
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 5px;
-        color: rgb(157, 33, 72) !important;
-        border: 1px solid #ddd;
-    }
-    [data-testid="stExpander"] details[open] > summary:hover {
-        color: #ff4b4b !important;
-    }
-
-    [data-testid="stSidebarNav"] {
-        display: none;
-    }
-    
-    /* Legend styling */
-    .legend-container {
-        position: fixed;
-        bottom: 50px;
-        right: 20px;
-        z-index: 1000;
-        background-color: white;
-        padding: 10px;
-        border-radius: 5px;
-        border: 2px solid #ccc;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    }
-    .legend-title {
-        font-weight: bold;
-        margin-bottom: 5px;
-        font-size: 14px;
-        color: #333;
-    }
-    .legend-item {
-        margin-bottom: 3px;
-        display: flex;
-        align-items: center;
-    }
-    .legend-color {
-        width: 18px;
-        height: 18px;
-        margin-right: 8px;
-        border: 1px solid #999;
-    }
-    </style>
-    ''', unsafe_allow_html=True)
+    st.markdown("""
+        <div class="info-box">
+            <p>Seleccione las categorías para visualizar las capas.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 # Initialize Map
 m = folium.Map(location=[19.4326, -99.1332], zoom_start=11, tiles="CartoDB positron", control_scale=True)
@@ -177,19 +246,13 @@ css = """
 """
 m.get_root().html.add_child(folium.Element(css))
 
+# Global state for active choropleth
+if 'active_choropleth' not in st.session_state:
+    st.session_state.active_choropleth = None
+
 # Function to render legend
 def render_legend(config_key):
-    config = CHOROPLETH_CONFIG[config_key]
-    mapping = config["mapping"]
-    title = config["legend_title"]
-    
-    legend_html = f'<div class="legend-container"><div class="legend-title">{title}</div>'
-    # Sort items consistently if possible, or just use mapping order
-    for label, color in mapping.items():
-        if "informaci" in label: continue # Skip the duplicated encoding fix label
-        legend_html += f'<div class="legend-item"><div class="legend-color" style="background-color: {color}"></div><span>{label}</span></div>'
-    legend_html += '</div>'
-    st.markdown(legend_html, unsafe_allow_html=True)
+    st.session_state.active_choropleth = config_key
 
 # Load Shapefiles
 shapefiles_dir = "shapefiles"
@@ -368,29 +431,13 @@ if os.path.exists(shapefiles_dir):
                     render_layer(display_name, rel_path)
 
 # Render Map
-# returned_objects=[] optimizes performance by not sending data back to Python
 st_folium(m, width="100%", height=800, returned_objects=[])
 
-st.markdown(
-    """
-    <style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: white;
-        color: #333;
-        text-align: center;
-        padding: 10px;
-        font-size: 14px;
-        border-top: 1px solid #eaeaea;
-        z-index: 9999;
-    }
-    </style>
-    <div class="footer">
-        Los datos fueron creados utilizando datos de la Fiscalía General de Justicia
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# Render Legend if active
+if st.session_state.active_choropleth:
+    config = CHOROPLETH_CONFIG[st.session_state.active_choropleth]
+    legend_items = "".join([f'<div class="legend-item"><div class="legend-color" style="background-color: {c}"></div><div class="legend-label">{l}</div></div>' for l, c in config["mapping"].items()])
+    st.markdown(f'<div class="legend-card"><div class="legend-title">{config["legend_title"]}</div>{legend_items}</div>', unsafe_allow_html=True)
+
+# Footer
+st.markdown('<div style="text-align: center; color: #64748b; font-size: 0.75rem; padding: 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">Fiscalía General de Justicia CDMX</div>', unsafe_allow_html=True)
