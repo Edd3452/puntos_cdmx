@@ -11,7 +11,7 @@ const config: Config = {
             colors: {
                 background: "var(--background)",
                 foreground: "var(--foreground)",
-                mapPrimary: "#581845",
+                mapPrimary: "#9D2148",
                 mapSecondary: "#900C3F",
                 mapAccent: "#C70039",
                 mapHighlight: "#FF5733",

@@ -135,7 +135,7 @@ const LAYER_CATEGORIES = [
 function Legend({ config }: { config: any }) {
     return (
         <div className="absolute bottom-10 right-10 z-[1000] bg-white p-6 rounded-xl shadow-xl border border-slate-200 font-inter min-w-[200px] animate-slide-in-from-bottom">
-            <h3 className="text-sm font-black text-[#581845] mb-5 tracking-tight">{config.legendTitle}</h3>
+            <h3 className="text-sm font-black text-[#9D2148] mb-5 tracking-tight">{config.legendTitle}</h3>
             <div className="space-y-4">
                 {Object.entries(config.mapping).map(([label, color]: [string, any]) => {
                     if (label.includes("informaci")) return null;
@@ -145,7 +145,7 @@ function Legend({ config }: { config: any }) {
                                 className="w-6 h-6 rounded shadow-sm transition-transform ring-1 ring-black/5"
                                 style={{ backgroundColor: color }}
                             ></div>
-                            <span className="text-sm font-semibold text-[#581845] transition-colors">{label}</span>
+                            <span className="text-sm font-semibold text-[#9D2148] transition-colors">{label}</span>
                         </div>
                     );
                 })}
@@ -265,7 +265,7 @@ export default function MapViewer() {
     return (
         <div className="flex flex-col h-screen w-full font-inter bg-[#f8f9fa] overflow-hidden">
             {/* Top Bar */}
-            <header className="h-14 bg-[#1a1c1e] flex items-center justify-between px-6 z-30 shrink-0 shadow-md">
+            <header className="h-14 bg-[#9D2148] flex items-center justify-between px-6 z-30 shrink-0 shadow-md">
                 <div className="flex items-center gap-4">
                     <div className="bg-white/10 p-1.5 rounded-lg">
                         <MapIcon size={18} className="text-white" />
@@ -280,10 +280,10 @@ export default function MapViewer() {
                 {/* Sidebar */}
                 <aside className="w-[360px] bg-white z-20 flex flex-col border-r border-slate-200 h-full overflow-hidden shrink-0">
                     <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
-                        <h2 className="text-[22px] font-bold text-[#581845] mb-6">Menús Disponibles</h2>
+                        <h2 className="text-[22px] font-bold text-[#9D2148] mb-6">Menús Disponibles</h2>
 
                         <div className="bg-[#e3f2fd] p-5 rounded-lg mb-8 border border-[#bbdefb]/50">
-                            <p className="text-[15px] text-[#581845] font-medium leading-snug">
+                            <p className="text-[15px] text-[#9D2148] font-medium leading-snug">
                                 Seleccione las categorías para visualizar las capas.
                             </p>
                         </div>
@@ -303,11 +303,11 @@ export default function MapViewer() {
                                         <div className="flex items-center gap-4">
                                             <div className={cn(
                                                 "transition-transform duration-200",
-                                                openCategories[category.id] ? "rotate-0 text-[#581845]" : "-rotate-90 text-slate-400"
+                                                openCategories[category.id] ? "rotate-0 text-[#9D2148]" : "-rotate-90 text-slate-400"
                                             )}>
                                                 <ChevronDown size={16} />
                                             </div>
-                                            <span className="font-semibold text-[17px] tracking-tight text-[#581845]">
+                                            <span className="font-semibold text-[17px] tracking-tight text-[#9D2148]">
                                                 {category.name}
                                             </span>
                                         </div>
@@ -329,7 +329,7 @@ export default function MapViewer() {
                                                     </div>
                                                     <span className={cn(
                                                         "text-[15px] font-medium transition-colors",
-                                                        activePredefined[layer.id] ? "text-[#581845]" : "text-[#581845]/70 group-hover/item:text-[#581845]"
+                                                        activePredefined[layer.id] ? "text-[#9D2148]" : "text-[#9D2148]/70 group-hover/item:text-[#9D2148]"
                                                     )}>
                                                         {layer.name}
                                                     </span>
@@ -354,7 +354,7 @@ export default function MapViewer() {
                                                                 </div>
                                                                 <span className={cn(
                                                                     "text-[15px] font-medium transition-colors",
-                                                                    activePredefined[layer.id] ? "text-[#581845]" : "text-[#581845]/70 group-hover/item:text-[#581845]"
+                                                                    activePredefined[layer.id] ? "text-[#9D2148]" : "text-[#9D2148]/70 group-hover/item:text-[#9D2148]"
                                                                 )}>
                                                                     {layer.name}
                                                                 </span>
@@ -373,7 +373,7 @@ export default function MapViewer() {
                     <div className="p-8 border-t border-slate-100 mt-auto bg-slate-50/50">
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
-                                <Search size={16} className="text-[#581845]/40" />
+                                <Search size={16} className="text-[#9D2148]/40" />
                                 <input 
                                     type="text" 
                                     placeholder="Filtrar capas..."
