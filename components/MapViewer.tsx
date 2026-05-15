@@ -4,15 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import shp from "shpjs";
-import { 
-    Layers, 
-    Map as MapIcon, 
-    ChevronDown, 
-    ChevronRight, 
-    Info, 
-    Database, 
-    Activity, 
-    Users, 
+import {
+    Layers,
+    Map as MapIcon,
+    ChevronDown,
+    ChevronRight,
+    Info,
+    Database,
+    Activity,
+    Users,
     AlertTriangle,
     Search,
     X,
@@ -196,13 +196,13 @@ export default function MapViewer() {
     }, []);
 
     const filteredCategories = LAYER_CATEGORIES.map(category => {
-        const filteredLayers = category.layers?.filter(l => 
+        const filteredLayers = category.layers?.filter(l =>
             l.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-        
+
         const filteredSubcategories = category.subcategories?.map(sub => ({
             ...sub,
-            layers: sub.layers.filter(l => 
+            layers: sub.layers.filter(l =>
                 l.name.toLowerCase().includes(searchQuery.toLowerCase())
             )
         })).filter(sub => sub.layers.length > 0);
@@ -295,8 +295,8 @@ export default function MapViewer() {
                                         onClick={() => toggleCategory(category.id)}
                                         className={cn(
                                             "w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 text-left",
-                                            openCategories[category.id] 
-                                                ? "bg-slate-50" 
+                                            openCategories[category.id]
+                                                ? "bg-slate-50"
                                                 : "hover:bg-slate-50"
                                         )}
                                     >
@@ -319,8 +319,8 @@ export default function MapViewer() {
                                                 <div key={layer.id} className="flex items-center gap-4 group/item cursor-pointer" onClick={() => togglePredefinedLayer(layer)}>
                                                     <div className={cn(
                                                         "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
-                                                        activePredefined[layer.id] 
-                                                            ? "bg-[#C70039] border-[#C70039] shadow-sm" 
+                                                        activePredefined[layer.id]
+                                                            ? "bg-[#C70039] border-[#C70039] shadow-sm"
                                                             : "border-slate-300 group-hover/item:border-slate-400"
                                                     )}>
                                                         {activePredefined[layer.id] && (
@@ -344,8 +344,8 @@ export default function MapViewer() {
                                                             <div key={layer.id} className="flex items-center gap-4 group/item cursor-pointer" onClick={() => togglePredefinedLayer(layer)}>
                                                                 <div className={cn(
                                                                     "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
-                                                                    activePredefined[layer.id] 
-                                                                        ? "bg-[#C70039] border-[#C70039] shadow-sm" 
+                                                                    activePredefined[layer.id]
+                                                                        ? "bg-[#C70039] border-[#C70039] shadow-sm"
                                                                         : "border-slate-300 group-hover/item:border-slate-400"
                                                                 )}>
                                                                     {activePredefined[layer.id] && (
@@ -374,8 +374,8 @@ export default function MapViewer() {
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-3">
                                 <Search size={16} className="text-[#9D2148]/40" />
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="Filtrar capas..."
                                     className="bg-transparent text-sm font-medium focus:outline-none w-full"
                                     value={searchQuery}
@@ -383,7 +383,7 @@ export default function MapViewer() {
                                 />
                             </div>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-                                Fiscalía General de Justicia CDMX
+                                Datos usados de la Fiscalía General de Justicia CDMX
                             </p>
                         </div>
                     </div>
@@ -410,16 +410,16 @@ export default function MapViewer() {
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                         />
-                        
+
                         {baseLayer && (
-                            <GeoJSON 
-                                data={baseLayer} 
+                            <GeoJSON
+                                data={baseLayer}
                                 style={{
                                     color: "#333333",
                                     weight: 1.5,
                                     fillOpacity: 0,
                                     dashArray: "5, 5"
-                                }} 
+                                }}
                             />
                         )}
 
@@ -496,7 +496,7 @@ export default function MapViewer() {
                             </div>
                         </div>
                     )}
-                    
+
                     {/* Statistics Overlay */}
                     <div className="absolute bottom-8 left-8 z-[1000] flex gap-3 pointer-events-none">
                         <div className="glass-panel px-4 py-3 rounded-2xl shadow-premium border border-white/40 flex items-center gap-3">
