@@ -167,18 +167,18 @@ function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolea
 
 function Legend({ config }: { config: any }) {
     return (
-        <div className="absolute bottom-6 right-6 z-[1000] glass-panel p-5 rounded-2xl shadow-premium border border-white/40 font-outfit min-w-[220px] animate-slide-in-from-bottom">
-            <h3 className="text-xs font-black text-gray-800 mb-4 border-b border-gray-100 pb-2 tracking-widest uppercase">{config.legendTitle}</h3>
-            <div className="space-y-3">
+        <div className="absolute bottom-10 right-10 z-[1000] bg-white p-6 rounded-xl shadow-xl border border-slate-200 font-inter min-w-[200px] animate-slide-in-from-bottom">
+            <h3 className="text-sm font-black text-[#581845] mb-5 tracking-tight">{config.legendTitle}</h3>
+            <div className="space-y-4">
                 {Object.entries(config.mapping).map(([label, color]: [string, any]) => {
                     if (label.includes("informaci")) return null;
                     return (
-                        <div key={label} className="flex items-center gap-3 group">
+                        <div key={label} className="flex items-center gap-4 group cursor-default">
                             <div
-                                className="w-6 h-6 rounded-lg shadow-sm border border-white group-hover:scale-110 transition-all duration-300 ring-1 ring-black/5"
+                                className="w-6 h-6 rounded shadow-sm transition-transform ring-1 ring-black/5"
                                 style={{ backgroundColor: color }}
                             ></div>
-                            <span className="text-[11px] font-bold text-gray-600 group-hover:text-black transition-colors uppercase tracking-tight">{label}</span>
+                            <span className="text-sm font-semibold text-[#581845] transition-colors">{label}</span>
                         </div>
                     );
                 })}
@@ -282,150 +282,141 @@ export default function MapViewer() {
     };
 
     return (
-        <div className="flex h-screen w-full font-inter bg-slate-50 overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-[380px] bg-white/90 backdrop-blur-xl shadow-premium z-20 flex flex-col border-r border-slate-200 h-full overflow-hidden shrink-0">
-                {/* Brand Header */}
-                <div className="p-8 bg-gradient-premium text-white relative overflow-hidden">
-                    <div className="absolute -right-10 -top-10 opacity-10 rotate-12">
-                        <MapIcon size={160} />
+        <div className="flex flex-col h-screen w-full font-inter bg-[#f8f9fa] overflow-hidden">
+            {/* Top Bar */}
+            <header className="h-14 bg-[#1a1c1e] flex items-center justify-between px-6 z-30 shrink-0 shadow-md">
+                <div className="flex items-center gap-4">
+                    <div className="bg-white/10 p-1.5 rounded-lg">
+                        <MapIcon size={18} className="text-white" />
                     </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                                <MapIcon size={24} className="text-white" />
-                            </div>
-                            <h1 className="text-2xl font-black tracking-tighter">Visor CDMX</h1>
+                    <span className="text-white font-bold tracking-tight">Visor CDMX</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <a href="https://github.com" target="_blank" rel="noreferrer" className="text-white/70 hover:text-white transition-colors">
+                        <svg height="24" viewBox="0 0 16 16" width="24" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+                    </a>
+                </div>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar */}
+                <aside className="w-[360px] bg-white z-20 flex flex-col border-r border-slate-200 h-full overflow-hidden shrink-0">
+                    <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+                        <h2 className="text-[22px] font-bold text-[#581845] mb-6">Menús Disponibles</h2>
+
+                        <div className="bg-[#e3f2fd] p-5 rounded-lg mb-8 border border-[#bbdefb]/50">
+                            <p className="text-[15px] text-[#581845] font-medium leading-snug">
+                                Seleccione las categorías para visualizar las capas.
+                            </p>
                         </div>
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70">Sistemas de Información Geográfica</p>
-                    </div>
-                </div>
 
-                {/* Search Bar */}
-                <div className="px-6 py-4 border-b border-slate-100">
-                    <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-mapPrimary transition-colors" size={16} />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar capas o datos..."
-                            className="w-full pl-10 pr-10 py-2.5 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-mapPrimary/20 focus:bg-white transition-all border border-transparent focus:border-mapPrimary/10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        {searchQuery && (
-                            <button 
-                                onClick={() => setSearchQuery("")}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Layer Categories */}
-                <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <Layers size={14} /> Capas Disponibles
-                        </h2>
-                        <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
-                            {Object.values(activePredefined).filter(Boolean).length} Activas
-                        </span>
-                    </div>
-
-                    <div className="space-y-4">
-                        {filteredCategories.map((category: any) => (
-                            <div key={category.id} className="group/cat">
-                                <button
-                                    onClick={() => toggleCategory(category.id)}
-                                    className={cn(
-                                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300",
-                                        openCategories[category.id] 
-                                            ? "bg-slate-50 shadow-sm border border-slate-100" 
-                                            : "hover:bg-slate-50"
-                                    )}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn(
-                                            "p-2 rounded-lg transition-colors",
-                                            openCategories[category.id] ? "bg-mapPrimary text-white" : "bg-slate-100 text-slate-500 group-hover/cat:bg-slate-200"
-                                        )}>
-                                            {category.icon}
+                        <div className="space-y-4">
+                            {filteredCategories.map((category: any) => (
+                                <div key={category.id} className="group/cat">
+                                    <button
+                                        onClick={() => toggleCategory(category.id)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between p-4 rounded-xl transition-all duration-200 text-left",
+                                            openCategories[category.id] 
+                                                ? "bg-slate-50" 
+                                                : "hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "transition-transform duration-200",
+                                                openCategories[category.id] ? "rotate-0 text-[#581845]" : "-rotate-90 text-slate-400"
+                                            )}>
+                                                <ChevronDown size={16} />
+                                            </div>
+                                            <span className={cn(
+                                                "font-semibold text-[17px] tracking-tight transition-colors",
+                                                openCategories[category.id] ? "text-[#581845]" : "text-[#581845]"
+                                            )}>
+                                                {category.name}
+                                            </span>
                                         </div>
-                                        <span className={cn(
-                                            "font-extrabold text-sm tracking-tight transition-colors",
-                                            openCategories[category.id] ? "text-slate-900" : "text-slate-600 group-hover/cat:text-slate-900"
-                                        )}>
-                                            {category.name}
-                                        </span>
-                                    </div>
-                                    <div className={cn(
-                                        "transition-transform duration-300",
-                                        openCategories[category.id] ? "rotate-180 text-mapPrimary" : "text-slate-400"
-                                    )}>
-                                        <ChevronDown size={18} />
-                                    </div>
-                                </button>
+                                    </button>
 
-                                {openCategories[category.id] && (
-                                    <div className="mt-2 ml-4 pl-8 border-l-2 border-slate-100 space-y-4 py-2 animate-slide-in-from-top">
-                                        {category.layers?.map(layer => (
-                                            <div key={layer.id} className="flex items-center justify-between group/item pr-2 animate-fade-in">
-                                                <span className={cn(
-                                                    "text-sm font-semibold transition-colors",
-                                                    activePredefined[layer.id] ? "text-slate-900" : "text-slate-500 group-hover/item:text-slate-700"
-                                                )}>
-                                                    {layer.name}
-                                                </span>
-                                                <CustomSwitch 
-                                                    checked={!!activePredefined[layer.id]} 
-                                                    onChange={() => togglePredefinedLayer(layer)} 
-                                                />
-                                            </div>
-                                        ))}
-
-                                        {category.subcategories?.map(sub => (
-                                            <div key={sub.id} className="space-y-4 pt-4 border-t border-slate-50 first:pt-0 first:border-0">
-                                                <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{sub.name}</h3>
-                                                <div className="space-y-4">
-                                                    {sub.layers.map(layer => (
-                                                        <div key={layer.id} className="flex items-center justify-between group/item pr-2">
-                                                            <span className={cn(
-                                                                "text-sm font-semibold transition-colors",
-                                                                activePredefined[layer.id] ? "text-slate-900" : "text-slate-500 group-hover/item:text-slate-700"
-                                                            )}>
-                                                                {layer.name}
-                                                            </span>
-                                                            <CustomSwitch 
-                                                                checked={!!activePredefined[layer.id]} 
-                                                                onChange={() => togglePredefinedLayer(layer)} 
-                                                            />
-                                                        </div>
-                                                    ))}
+                                    {openCategories[category.id] && (
+                                        <div className="mt-2 ml-4 pl-8 space-y-5 py-2 animate-slide-in-from-top">
+                                            {category.layers?.map(layer => (
+                                                <div key={layer.id} className="flex items-center gap-4 group/item cursor-pointer" onClick={() => togglePredefinedLayer(layer)}>
+                                                    <div className={cn(
+                                                        "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                                        activePredefined[layer.id] 
+                                                            ? "bg-red-500 border-red-500 shadow-sm" 
+                                                            : "border-slate-300 group-hover/item:border-slate-400"
+                                                    )}>
+                                                        {activePredefined[layer.id] && (
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                        )}
+                                                    </div>
+                                                    <span className={cn(
+                                                        "text-[15px] font-medium transition-colors",
+                                                        activePredefined[layer.id] ? "text-[#581845]" : "text-[#581845]/70 group-hover/item:text-[#581845]"
+                                                    )}>
+                                                        {layer.name}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            ))}
+
+                                            {category.subcategories?.map(sub => (
+                                                <div key={sub.id} className="space-y-4 pt-2">
+                                                    <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">{sub.name}</h3>
+                                                    <div className="space-y-5">
+                                                        {sub.layers.map(layer => (
+                                                            <div key={layer.id} className="flex items-center gap-4 group/item cursor-pointer" onClick={() => togglePredefinedLayer(layer)}>
+                                                                <div className={cn(
+                                                                    "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                                                    activePredefined[layer.id] 
+                                                                        ? "bg-red-500 border-red-500 shadow-sm" 
+                                                                        : "border-slate-300 group-hover/item:border-slate-400"
+                                                                )}>
+                                                                    {activePredefined[layer.id] && (
+                                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                                    )}
+                                                                </div>
+                                                                <span className={cn(
+                                                                    "text-[15px] font-medium transition-colors",
+                                                                    activePredefined[layer.id] ? "text-[#581845]" : "text-[#581845]/70 group-hover/item:text-[#581845]"
+                                                                )}>
+                                                                    {layer.name}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="p-8 border-t border-slate-100 mt-auto bg-slate-50/50">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center gap-3">
+                                <Search size={16} className="text-[#581845]/40" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Filtrar capas..."
+                                    className="bg-transparent text-sm font-medium focus:outline-none w-full"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
                             </div>
-                        ))}
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                                Fiscalía General de Justicia CDMX
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </aside>
 
-                {/* Footer Info */}
-                <div className="p-6 bg-slate-50 border-t border-slate-100">
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex gap-3">
-                        <Info className="text-mapPrimary shrink-0" size={16} />
-                        <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase tracking-wider">
-                            Los datos provienen del registro público de la Fiscalía General de Justicia de la CDMX.
-                        </p>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Map Content */}
-            <main className="flex-1 relative bg-slate-200 overflow-hidden">
+                {/* Map Content */}
+                <main className="flex-1 relative bg-slate-100 overflow-hidden">
                 {loading && (
                     <div className="absolute inset-0 z-[2000] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center transition-all duration-500">
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-premium flex flex-col items-center">
