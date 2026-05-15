@@ -4,8 +4,27 @@ import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import shp from "shpjs";
-import { Layers, Map as MapIcon, ChevronDown, ChevronRight, Info } from "lucide-react";
+import { 
+    Layers, 
+    Map as MapIcon, 
+    ChevronDown, 
+    ChevronRight, 
+    Info, 
+    Database, 
+    Activity, 
+    Users, 
+    AlertTriangle,
+    Search,
+    X,
+    Filter
+} from "lucide-react";
 import L from "leaflet";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+}
 
 const predefinedColors = [
     "#99cc00", "#ff9900", "#339866", "#800080",
@@ -46,6 +65,7 @@ const LAYER_CATEGORIES = [
     {
         id: "sociales",
         name: "Sociales",
+        icon: <Users size={18} />,
         layers: [
             { id: "biciestacionamientos", name: "Biciestacionamientos", path: "/shapefiles/Social/Biciestacionamientos_Final" },
             { id: "centros_justicia", name: "Centros de justicia", path: "/shapefiles/Social/Centros_de_justicia" },
@@ -58,6 +78,7 @@ const LAYER_CATEGORIES = [
     {
         id: "delitos",
         name: "Delitos",
+        icon: <AlertTriangle size={18} />,
         subcategories: [
             {
                 id: "delitos_personas",
@@ -91,6 +112,7 @@ const LAYER_CATEGORIES = [
     {
         id: "ni_una_menos",
         name: "Registros (Ni una menos)",
+        icon: <Activity size={18} />,
         layers: [
             { id: "acoso", name: "Acoso y agresión", path: "/shapefiles/Ni una menos/Acoso y agresióin" },
             { id: "asaltos", name: "Asaltos", path: "/shapefiles/Ni una menos/Asaltos" },
@@ -101,12 +123,33 @@ const LAYER_CATEGORIES = [
     {
         id: "socio_demograficas",
         name: "Socio Demográficas",
+        icon: <Database size={18} />,
         layers: [
             { id: "marginacion", name: "Grado de Marginación", path: "/shapefiles/Socio demografico/GradoMarginación" },
             { id: "ageb", name: "AGEB CDMX", path: "/shapefiles/Socio demografico/ids_ageb_cdmx" }
         ]
     }
 ];
+
+function CustomSwitch({ checked, onChange }: { checked: boolean, onChange: () => void }) {
+    return (
+        <button
+            onClick={onChange}
+            className={cn(
+                "relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mapPrimary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                checked ? "bg-mapPrimary" : "bg-gray-200"
+            )}
+        >
+            <span
+                className={cn(
+                    "pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform",
+                    checked ? "translate-x-5" : "translate-x-1"
+                )}
+            />
+        </button>
+    );
+}
+
 function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolean }) {
     const map = useMap();
     useEffect(() => {
@@ -114,7 +157,7 @@ function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolea
             try {
                 const bounds = L.geoJSON(geojson).getBounds();
                 if (bounds.isValid()) {
-                    map.fitBounds(bounds, { padding: [20, 20] });
+                    map.fitBounds(bounds, { padding: [50, 50] });
                 }
             } catch (e) { }
         }
@@ -124,18 +167,18 @@ function BoundsManager({ geojson, fitBounds }: { geojson: any, fitBounds: boolea
 
 function Legend({ config }: { config: any }) {
     return (
-        <div className="absolute bottom-10 right-10 z-[1000] bg-white p-5 rounded-xl shadow-2xl border border-gray-100 font-outfit min-w-[200px] animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <h3 className="text-sm font-extrabold text-gray-800 mb-4 border-b pb-2 tracking-tight">{config.legendTitle}</h3>
+        <div className="absolute bottom-6 right-6 z-[1000] glass-panel p-5 rounded-2xl shadow-premium border border-white/40 font-outfit min-w-[220px] animate-slide-in-from-bottom">
+            <h3 className="text-xs font-black text-gray-800 mb-4 border-b border-gray-100 pb-2 tracking-widest uppercase">{config.legendTitle}</h3>
             <div className="space-y-3">
                 {Object.entries(config.mapping).map(([label, color]: [string, any]) => {
                     if (label.includes("informaci")) return null;
                     return (
                         <div key={label} className="flex items-center gap-3 group">
                             <div
-                                className="w-5 h-5 rounded shadow-sm border border-black/5 group-hover:scale-110 transition-transform"
+                                className="w-6 h-6 rounded-lg shadow-sm border border-white group-hover:scale-110 transition-all duration-300 ring-1 ring-black/5"
                                 style={{ backgroundColor: color }}
                             ></div>
-                            <span className="text-xs font-semibold text-gray-600 group-hover:text-black transition-colors">{label}</span>
+                            <span className="text-[11px] font-bold text-gray-600 group-hover:text-black transition-colors uppercase tracking-tight">{label}</span>
                         </div>
                     );
                 })}
@@ -148,9 +191,9 @@ export default function MapViewer() {
     const [layers, setLayers] = useState<any[]>([]);
     const [baseLayer, setBaseLayer] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const colorIndex = useRef(0);
 
-    // Keep track of which predefined layers are toggled ON
     const [activePredefined, setActivePredefined] = useState<Record<string, boolean>>({});
     const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
         sociales: true,
@@ -172,7 +215,6 @@ export default function MapViewer() {
     useEffect(() => {
         const loadDefaults = async () => {
             try {
-                // Prepend origin to avoid "Invalid URL" error in shpjs
                 const baseUrl = window.location.origin;
                 const base = await shp(baseUrl + "/shapefiles/09mun");
                 setBaseLayer(base);
@@ -183,25 +225,40 @@ export default function MapViewer() {
         loadDefaults();
     }, []);
 
+    const filteredCategories = LAYER_CATEGORIES.map(category => {
+        const filteredLayers = category.layers?.filter(l => 
+            l.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+        const filteredSubcategories = category.subcategories?.map(sub => ({
+            ...sub,
+            layers: sub.layers.filter(l => 
+                l.name.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+        })).filter(sub => sub.layers.length > 0);
 
+        if ((filteredLayers && filteredLayers.length > 0) || (filteredSubcategories && filteredSubcategories.length > 0)) {
+            return {
+                ...category,
+                layers: filteredLayers,
+                subcategories: filteredSubcategories
+            };
+        }
+        return null;
+    }).filter(Boolean);
 
     const togglePredefinedLayer = async (layerConfig: any) => {
         const isCurrentlyActive = !!activePredefined[layerConfig.id];
-
-        // Toggle state visually immediately
         setActivePredefined(prev => ({ ...prev, [layerConfig.id]: !isCurrentlyActive }));
 
-        // If it was already loaded into `layers`, just toggle its `active` status
         if (layers.some(l => l.id === layerConfig.id)) {
             setLayers(prev => prev.map(l => l.id === layerConfig.id ? { ...l, active: !isCurrentlyActive, isNew: false } : l));
             return;
         }
 
-        // If turning ON for the first time, fetch it natively from /public/shapefiles
         if (!isCurrentlyActive) {
             setLoading(true);
             try {
-                // Prepend origin and encode to avoid "Invalid URL" error in shpjs
                 const baseUrl = window.location.origin;
                 const fullPath = baseUrl + encodeURI(layerConfig.path);
                 const geojson = await shp(fullPath);
@@ -217,89 +274,134 @@ export default function MapViewer() {
                 setLayers(prev => [...prev, loadedLayer]);
             } catch (err) {
                 console.error(`Error loading predefined layer ${layerConfig.name}:`, err);
-                alert(`Error cargando capa ${layerConfig.name}`);
-                setActivePredefined(prev => ({ ...prev, [layerConfig.id]: false })); // revert
+                setActivePredefined(prev => ({ ...prev, [layerConfig.id]: false }));
             } finally {
                 setLoading(false);
             }
         }
     };
 
-
-
     return (
-        <div className="flex h-screen w-full font-outfit">
+        <div className="flex h-screen w-full font-inter bg-slate-50 overflow-hidden">
             {/* Sidebar */}
-            <aside className="w-[340px] bg-white shadow-lg z-10 flex flex-col border-r h-full relative">
-                <div className="p-6 bg-mapPrimary text-white">
-                    <div className="flex items-center gap-3 mb-2">
-                        <MapIcon size={24} />
-                        <h1 className="text-2xl font-bold tracking-wide">Visor CDMX</h1>
+            <aside className="w-[380px] bg-white/90 backdrop-blur-xl shadow-premium z-20 flex flex-col border-r border-slate-200 h-full overflow-hidden shrink-0">
+                {/* Brand Header */}
+                <div className="p-8 bg-gradient-premium text-white relative overflow-hidden">
+                    <div className="absolute -right-10 -top-10 opacity-10 rotate-12">
+                        <MapIcon size={160} />
                     </div>
-                    <p className="text-sm opacity-90 text-gray-200 leading-tight">Capas Geográficas CDMX</p>
-
-
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                                <MapIcon size={24} className="text-white" />
+                            </div>
+                            <h1 className="text-2xl font-black tracking-tighter">Visor CDMX</h1>
+                        </div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-70">Sistemas de Información Geográfica</p>
+                    </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    <h2 className="text-xl font-bold text-mapPrimary mb-4">Menús Disponibles</h2>
+                {/* Search Bar */}
+                <div className="px-6 py-4 border-b border-slate-100">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-mapPrimary transition-colors" size={16} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar capas o datos..."
+                            className="w-full pl-10 pr-10 py-2.5 bg-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-mapPrimary/20 focus:bg-white transition-all border border-transparent focus:border-mapPrimary/10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                            <button 
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                </div>
 
-                    <div className="bg-[#e3f2fd] p-4 rounded-lg flex gap-3 mb-6">
-                        <Info className="text-mapPrimary shrink-0" size={20} />
-                        <p className="text-sm text-mapPrimary font-medium leading-tight">
-                            Seleccione las categorías para visualizar las capas.
-                        </p>
+                {/* Layer Categories */}
+                <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <Layers size={14} /> Capas Disponibles
+                        </h2>
+                        <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
+                            {Object.values(activePredefined).filter(Boolean).length} Activas
+                        </span>
                     </div>
 
-                    <div className="space-y-2">
-                        {LAYER_CATEGORIES.map(category => (
-                            <div key={category.id} className="border-b border-gray-100 last:border-0 pb-2">
+                    <div className="space-y-4">
+                        {filteredCategories.map((category: any) => (
+                            <div key={category.id} className="group/cat">
                                 <button
                                     onClick={() => toggleCategory(category.id)}
-                                    className="w-full flex items-center justify-between py-3 px-1 text-left hover:bg-gray-50 transition-colors group"
+                                    className={cn(
+                                        "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300",
+                                        openCategories[category.id] 
+                                            ? "bg-slate-50 shadow-sm border border-slate-100" 
+                                            : "hover:bg-slate-50"
+                                    )}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="text-mapPrimary">
-                                            {openCategories[category.id] ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                        <div className={cn(
+                                            "p-2 rounded-lg transition-colors",
+                                            openCategories[category.id] ? "bg-mapPrimary text-white" : "bg-slate-100 text-slate-500 group-hover/cat:bg-slate-200"
+                                        )}>
+                                            {category.icon}
                                         </div>
-                                        <span className={`font-semibold text-lg ${openCategories[category.id] ? 'text-mapPrimary' : 'text-gray-700'} group-hover:text-mapPrimary transition-colors`}>
+                                        <span className={cn(
+                                            "font-extrabold text-sm tracking-tight transition-colors",
+                                            openCategories[category.id] ? "text-slate-900" : "text-slate-600 group-hover/cat:text-slate-900"
+                                        )}>
                                             {category.name}
                                         </span>
+                                    </div>
+                                    <div className={cn(
+                                        "transition-transform duration-300",
+                                        openCategories[category.id] ? "rotate-180 text-mapPrimary" : "text-slate-400"
+                                    )}>
+                                        <ChevronDown size={18} />
                                     </div>
                                 </button>
 
                                 {openCategories[category.id] && (
-                                    <div className="pl-8 pr-2 space-y-3 mt-1 pb-2">
+                                    <div className="mt-2 ml-4 pl-8 border-l-2 border-slate-100 space-y-4 py-2 animate-slide-in-from-top">
                                         {category.layers?.map(layer => (
-                                            <label key={layer.id} className="flex items-center gap-3 cursor-pointer group/item">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!activePredefined[layer.id]}
-                                                    onChange={() => togglePredefinedLayer(layer)}
-                                                    className="w-4 h-4 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
-                                                />
-                                                <span className="text-sm text-gray-600 group-hover/item:text-black transition-colors">
+                                            <div key={layer.id} className="flex items-center justify-between group/item pr-2 animate-fade-in">
+                                                <span className={cn(
+                                                    "text-sm font-semibold transition-colors",
+                                                    activePredefined[layer.id] ? "text-slate-900" : "text-slate-500 group-hover/item:text-slate-700"
+                                                )}>
                                                     {layer.name}
                                                 </span>
-                                            </label>
+                                                <CustomSwitch 
+                                                    checked={!!activePredefined[layer.id]} 
+                                                    onChange={() => togglePredefinedLayer(layer)} 
+                                                />
+                                            </div>
                                         ))}
 
                                         {category.subcategories?.map(sub => (
-                                            <div key={sub.id} className="space-y-2 pt-2 border-t border-gray-50 mt-4 first:mt-0 first:border-0 first:pt-0">
-                                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider pl-1">{sub.name}</h3>
-                                                <div className="space-y-3 pl-1">
+                                            <div key={sub.id} className="space-y-4 pt-4 border-t border-slate-50 first:pt-0 first:border-0">
+                                                <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{sub.name}</h3>
+                                                <div className="space-y-4">
                                                     {sub.layers.map(layer => (
-                                                        <label key={layer.id} className="flex items-center gap-3 cursor-pointer group/item">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={!!activePredefined[layer.id]}
-                                                                onChange={() => togglePredefinedLayer(layer)}
-                                                                className="w-4 h-4 text-mapPrimary rounded border-gray-300 focus:ring-mapPrimary accent-mapPrimary cursor-pointer"
-                                                            />
-                                                            <span className="text-sm text-gray-600 group-hover/item:text-black transition-colors">
+                                                        <div key={layer.id} className="flex items-center justify-between group/item pr-2">
+                                                            <span className={cn(
+                                                                "text-sm font-semibold transition-colors",
+                                                                activePredefined[layer.id] ? "text-slate-900" : "text-slate-500 group-hover/item:text-slate-700"
+                                                            )}>
                                                                 {layer.name}
                                                             </span>
-                                                        </label>
+                                                            <CustomSwitch 
+                                                                checked={!!activePredefined[layer.id]} 
+                                                                onChange={() => togglePredefinedLayer(layer)} 
+                                                            />
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </div>
@@ -311,27 +413,39 @@ export default function MapViewer() {
                     </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t mt-auto">
-                    <div className="text-xs text-center text-gray-500">
-                        Datos utilizandos del registro público de la Fiscalía General de Justicia CDMX
+                {/* Footer Info */}
+                <div className="p-6 bg-slate-50 border-t border-slate-100">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex gap-3">
+                        <Info className="text-mapPrimary shrink-0" size={16} />
+                        <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase tracking-wider">
+                            Los datos provienen del registro público de la Fiscalía General de Justicia de la CDMX.
+                        </p>
                     </div>
                 </div>
             </aside>
 
             {/* Map Content */}
-            <main className="flex-1 relative">
+            <main className="flex-1 relative bg-slate-200 overflow-hidden">
                 {loading && (
-                    <div className="absolute inset-0 z-[1000] bg-white/60 backdrop-blur-sm flex items-center justify-center">
-                        <div className="flex flex-col items-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-mapPrimary border-t-transparent"></div>
-                            <p className="mt-4 font-semibold text-mapPrimary">Procesando Shapefile...</p>
+                    <div className="absolute inset-0 z-[2000] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center transition-all duration-500">
+                        <div className="bg-white p-8 rounded-[2.5rem] shadow-premium flex flex-col items-center">
+                            <div className="relative">
+                                <div className="absolute inset-0 animate-ping rounded-full bg-mapPrimary/20"></div>
+                                <div className="relative animate-spin rounded-full h-16 w-16 border-[5px] border-mapPrimary border-t-transparent shadow-xl"></div>
+                            </div>
+                            <p className="mt-6 font-black text-slate-900 uppercase tracking-widest text-xs">Analizando Datos</p>
+                            <div className="mt-2 flex gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-mapPrimary animate-bounce [animation-delay:-0.3s]"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-mapPrimary animate-bounce [animation-delay:-0.15s]"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-mapPrimary animate-bounce"></span>
+                            </div>
                         </div>
                     </div>
                 )}
 
-                <MapContainer center={[19.4326, -99.1332]} zoom={10} className="h-full w-full">
+                <MapContainer center={[19.4326, -99.1332]} zoom={11} className="h-full w-full grayscale-[0.2] contrast-[1.1]">
                     <TileLayer
-                        attribution='&copy; CARTO'
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                         maxZoom={20}
                     />
@@ -340,10 +454,11 @@ export default function MapViewer() {
                         <GeoJSON
                             data={baseLayer}
                             style={{
-                                color: '#333333',
-                                weight: 1.5,
-                                fillOpacity: 0,
-                                dashArray: '5, 5'
+                                color: '#1e293b',
+                                weight: 2,
+                                fillOpacity: 0.05,
+                                fillColor: '#1e293b',
+                                dashArray: '8, 8'
                             }}
                         />
                     )}
@@ -355,12 +470,12 @@ export default function MapViewer() {
                                 data={layer.data}
                                 pointToLayer={(feature, latlng) => {
                                     return L.circleMarker(latlng, {
-                                        radius: 5,
+                                        radius: 6,
                                         fillColor: layer.color,
                                         color: '#fff',
-                                        weight: 1,
+                                        weight: 2,
                                         opacity: 1,
-                                        fillOpacity: 0.8
+                                        fillOpacity: 0.9
                                     });
                                 }}
                                 style={(feature) => {
@@ -370,41 +485,50 @@ export default function MapViewer() {
                                         const color = config.mapping[val] || "#ffffff";
                                         return {
                                             fillColor: color,
-                                            color: '#666666',
-                                            weight: 1,
-                                            fillOpacity: 0.7
+                                            color: '#fff',
+                                            weight: 1.5,
+                                            fillOpacity: 0.85
                                         };
                                     }
                                     return {
                                         color: layer.color,
-                                        weight: 2,
+                                        weight: 3,
                                         opacity: 1,
-                                        fillOpacity: 0.4
+                                        fillOpacity: 0.5
                                     };
                                 }}
                                 onEachFeature={(feature, featureLayer) => {
                                     if (feature.properties) {
                                         const config = CHOROPLETH_CONFIG[layer.id];
-                                        let html = '<div class="font-outfit text-sm" style="max-height: 250px; overflow: auto; min-width: 220px; padding: 4px;">';
-
-                                        // Highlight the classification if it's a choropleth layer
+                                        let html = '<div class="font-inter p-2 min-w-[280px]">';
+                                        
                                         if (config && feature.properties[config.column]) {
                                             const val = feature.properties[config.column];
                                             const color = config.mapping[val] || "#333";
                                             html += `
-                                                <div class="mb-4 p-3 rounded-lg border-l-4 shadow-sm" style="border-left-color: ${color}; background-color: ${color}15">
-                                                    <div class="text-[10px] uppercase font-bold text-gray-500 mb-1">${config.legendTitle}</div>
-                                                    <div class="text-base font-extrabold" style="color: ${color}">${val}</div>
+                                                <div class="mb-5 p-4 rounded-2xl border border-slate-100 shadow-sm" style="background: linear-gradient(to right, ${color}10, transparent)">
+                                                    <div class="text-[9px] uppercase font-black text-slate-400 mb-1 tracking-[0.2em]">${config.legendTitle}</div>
+                                                    <div class="text-xl font-black" style="color: ${color}">${val}</div>
                                                 </div>
                                             `;
                                         }
 
-                                        Object.entries(feature.properties).slice(0, 10).forEach(([k, v]) => {
-                                            if (config && k === config.column) return; // Skip as it's already shown
-                                            html += `<div class="border-b last:border-b-0 py-1.5 flex justify-between gap-4"><span class="font-bold text-gray-500 text-[10px] uppercase">${k}</span> <span class="text-gray-900 font-semibold text-right">${v}</span></div>`;
+                                        html += '<div class="space-y-2">';
+                                        Object.entries(feature.properties).slice(0, 8).forEach(([k, v]) => {
+                                            if (config && k === config.column) return;
+                                            html += `
+                                                <div class="flex justify-between items-center py-2 border-b border-slate-50 last:border-0 gap-4">
+                                                    <span class="font-black text-[9px] uppercase tracking-wider text-slate-400 shrink-0">${k}</span>
+                                                    <span class="text-slate-800 font-bold text-xs text-right break-words">${v}</span>
+                                                </div>
+                                            `;
                                         });
-                                        html += '</div>';
-                                        featureLayer.bindPopup(html);
+                                        html += '</div></div>';
+                                        
+                                        featureLayer.bindPopup(html, {
+                                            className: 'premium-popup',
+                                            maxWidth: 320
+                                        });
                                     }
                                 }}
                             />
@@ -419,14 +543,23 @@ export default function MapViewer() {
 
                 {/* Top Banner for Sociodemographic titles */}
                 {layers.some(l => l.active && CHOROPLETH_CONFIG[l.id]) && (
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xl px-4 pointer-events-none">
-                        <div className="bg-white/90 backdrop-blur-md text-mapPrimary px-6 py-4 rounded-2xl shadow-2xl border border-white/20 text-center animate-in fade-in zoom-in duration-500">
-                            <h3 className="text-sm md:text-base font-black tracking-tight leading-tight">
+                    <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-2xl px-6 pointer-events-none">
+                        <div className="glass-panel text-slate-900 px-8 py-5 rounded-[2rem] shadow-premium border border-white/40 text-center animate-zoom-in">
+                            <div className="text-[10px] font-black uppercase tracking-[0.3em] text-mapPrimary mb-1">Capa Activa</div>
+                            <h3 className="text-sm md:text-lg font-black tracking-tight leading-tight">
                                 {CHOROPLETH_CONFIG[layers.findLast(l => l.active && CHOROPLETH_CONFIG[l.id])?.id]?.headerTitle}
                             </h3>
                         </div>
                     </div>
                 )}
+                
+                {/* Statistics Overlay (Minimal) */}
+                <div className="absolute bottom-8 left-8 z-[1000] flex gap-3 pointer-events-none">
+                    <div className="glass-panel px-4 py-3 rounded-2xl shadow-premium border border-white/40 flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Sistema Activo</span>
+                    </div>
+                </div>
             </main>
         </div>
     );

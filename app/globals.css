@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #333333;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
@@ -13,28 +13,56 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  font-family: var(--font-inter);
 }
 
 /* Base Leaflet overrides */
 .leaflet-container {
   height: 100vh;
   width: 100%;
+  font-family: var(--font-outfit) !important;
 }
+
 .leaflet-interactive:focus,
 path.leaflet-interactive:focus {
   outline: none !important;
 }
 
-/* Layout Utilities */
-.app-layout {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark-glass-panel {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-mapPrimary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors font-medium;
+    @apply bg-mapPrimary text-white px-4 py-2 rounded-xl hover:bg-opacity-90 transition-all active:scale-95 font-medium shadow-md;
   }
 }
